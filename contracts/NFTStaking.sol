@@ -12,29 +12,6 @@ import "../interfaces/ILogic.sol";
 
 /// @custom:oz-upgrades-from NFTStakingOld
 contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
-    // IStateContract public stateContract;
-    // IPrecompileContract public precompileContract;
-    uint8 public  secondsPerBlock ;
-    IERC20 public rewardToken;
-
-    uint256 public rewardAmountPerSecond;
-    uint256 public  baseReserveAmount ;
-
-    uint256 public nonlinearCoefficientNumerator;
-    uint256 public nonlinearCoefficientDenominator;
-
-    string[] public machineIds;
-    mapping (string => bool) public isMachineInclude;
-    mapping (string => bool) public isMachineStaked;
-    mapping(address => mapping (string => uint)) public stakeholder2Reserved;
-    uint256 public totalReservedAmount;
-    mapping(string => address) public machineId2Address;
-    uint256 public startAt;
-    mapping (string => mapping (address => uint[]) ) public nftStakeIds;
-
-    uint256 public totalCalcPoint;
-
-    ILogic public logic;
 
     struct StakeInfo {
         address holder;
@@ -49,18 +26,8 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 claimedAmount;
         uint rewardForStake;
         bool isStaking;
-    
-        
+
     }
-
-  
-    mapping(address => uint8) public walletAddress2StakingMachineCount;
-
-    mapping(address => bool) public addressInStaking;
-
-    mapping(string => mapping (address => StakeInfo)) public machineId2StakeInfos;
-
-    IERC721 public nftToken;
 
     struct LockedRewardDetail {
         uint256 amountReleaseDaily;
@@ -68,45 +35,64 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint claimedDay;
     }
 
-    mapping(string =>mapping (address => LockedRewardDetail[])) public machineId2LockedRewardDetails;
-
-    uint8 public  MAX_NFTS_PER_MACHINE ;
-    // uint256 public daily_reward;
-    uint public dailyRewardBase;
-    // uint public dailyRewardNonlinear;
-    uint public rewardRateBase;
-    // uint public rewardRateNonlinear;
-    uint public lastUpdateTime;
-    uint public rewardPerBasePointStored;
-    // uint public rewardPerNonliearPointStored;
-
-    uint public totalGpuCount;
-
     struct RewardInfo {
-            uint releaseRate;
-            uint lastClaimAt;
-            uint rewardUnlockAmount;
-            uint rewardLockedAmount;
+        uint releaseRate;
+        uint lastClaimAt;
+        uint rewardUnlockAmount;
+        uint rewardLockedAmount;
     }
       
 
-    //   mapping (string => RewardInfo) public rewards;
+    
+    ILogic public logic;
+    IERC20 public rewardToken;
+    IERC721 public nftToken;
+  
+    uint256 public startAt;
+    uint8 public  secondsPerBlock ;
 
-    mapping(string => mapping (address => uint)) public machineRewardPerBasePointPaid;
-    // mapping(address => uint) public userRewardPerNonlinearPointPaid;
-    mapping(string => mapping (address => uint)) public rewardsBase;
-    //  mapping(address => uint) public rewardsNonlinear;
+    uint256 public rewardAmountPerSecond;
+    uint256 public  baseReserveAmount ;
 
+    uint256 public nonlinearCoefficientNumerator;
+    uint256 public nonlinearCoefficientDenominator;
+
+    string[] public machineIds;
+    uint256 public totalReservedAmount;
+    mapping (string => bool) public isMachineStaked;
+    mapping(address => mapping (string => uint)) public stakeholder2Reserved;
+    
+    mapping(string => address) public machineId2Address;
+
+    mapping (string => mapping (address => uint[])) public nftStakeIds;
+
+    mapping(string =>uint) public machineIdx;
+
+    mapping(address => uint8) public walletAddress2StakingMachineCount;
+
+    mapping(address => bool) public addressInStaking;
+
+    mapping(string => mapping (address => StakeInfo)) public machineId2StakeInfos;
+
+    mapping(string =>mapping (address => LockedRewardDetail[])) public machineId2LockedRewardDetails;
+
+    uint8 public  MAX_NFTS_PER_MACHINE ;
+    
+    uint public dailyRewardBase;
+    uint public rewardRateBase;
+    uint public lastUpdateTime;
+    uint public rewardPerBasePointStored;
+    
+    uint public totalGpuCount;
     uint public totalBasePoint;
+    mapping(string => mapping (address => uint)) public machineRewardPerBasePointPaid;
+    mapping(string => mapping (address => uint)) public rewardsBase;
     mapping(string => mapping (address => uint)) public balanceBasePoint;
-    // uint public totalNonlinearPoint;
-    // mapping (address => uint) public balanceNonlinearPoint;
+
     uint public periodFinish;
     uint public gpuCountStartRequired;
 
     uint public stakingThresholdAmount;
-
-    //    uint256 public constant REWARD_DURATION = 60 days;
     uint256 public  REWARD_DURATION ; //todo: change to 60 days
 
     uint256 public  LOCK_PERIOD_DAY ;
@@ -114,7 +100,6 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 public  SECONDS_PER_DAY ;
     uint public numberPerDay;
 
-   
     uint8 public phaseLevel;
 
     uint256 public addressCountInStaking;
@@ -144,15 +129,15 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         __Ownable_init();
         secondsPerBlock = 6;
         baseReserveAmount = 10_000 * 10 ** 18;
-         MAX_NFTS_PER_MACHINE = 20;
-          REWARD_DURATION = 60 days;
-          LOCK_PERIOD_DAY = 180;
-           DAILY_UNLOCK_RATE = 5;
-           SECONDS_PER_DAY = 1 days;
-           numberPerDay = 86400/secondsPerBlock;
+        MAX_NFTS_PER_MACHINE = 10;
+        REWARD_DURATION = 60 days;
+        LOCK_PERIOD_DAY = 180;
+        DAILY_UNLOCK_RATE = 5;
+        SECONDS_PER_DAY = 1 days;
+        numberPerDay = 86400/secondsPerBlock;
            
         nftToken = IERC721(_nftToken);
-        // stateContract = IStateContract(_stateContract);
+        
         phaseLevel = _phase_level;
         nonlinearCoefficientNumerator = 1;
         nonlinearCoefficientDenominator = 10;
@@ -160,56 +145,44 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         logic = ILogic(_logic);
         if (phaseLevel == 1) {
-            // daily_reward = 6000000 * 1e18;
-            dailyRewardBase = 3000000e18;
-            // dailyRewardNonlinear = 3000000e18;
+            
+            dailyRewardBase = 250000000e18;
+            
             rewardRateBase = dailyRewardBase/1 days;
-            // rewardRateNonlinear = dailyRewardNonlinear/ 1 days;
+            
             gpuCountStartRequired = 2; // 200;
         }
         if (phaseLevel == 2) {
-            // daily_reward = 8000000 * 1e18;
-            dailyRewardBase = 4000000e18;
-            // dailyRewardNonlinear = 4000000e18;
+            
+            dailyRewardBase = 500000000e18;
+            
             rewardRateBase = dailyRewardBase/1 days;
-            // rewardRateNonlinear = dailyRewardNonlinear/ 1 days;
+            
             gpuCountStartRequired = 400;
         }
   
 
         
-            rewardToken = IERC20(_rewardToken);
+        rewardToken = IERC20(_rewardToken);
         
 
         
     }
 
-      function updateReward(string memory _machine,address _account) private {
+    function updateReward(string memory _machine,address _account) private {
         if(startAt ==0){
             return;
         }
 
-        // RewardInfo storage _reward = rewards[_machine];
+
         rewardPerBasePointStored = rewardPerBasePoint();
-        // rewardPerNonliearPointStored = rewardPerNonlinearPoint();
 
-       
-        // if (_mechine != 0) {
-            rewardsBase[_machine][_account] = earnedBase(_machine,_account);
-            // uint _lastRelease = (block.timestamp - _reward.lastClaimAt)*_reward.releaseRate > _reward.rewardLockedAmount ? _reward.rewardLockedAmount : (block.timestamp - _reward.lastClaimAt)*_reward.releaseRate;
-            // _reward.lastClaimAt = block.timestamp;
-            // _reward.rewardLockedAmount = (_reward.rewardLockedAmount - _lastRelease) + _newReward * 9 /10;
-            // _reward.rewardUnlockAmount += _lastRelease + _newReward / 10;
 
-            // _reward.releaseRate = _reward.rewardLockedAmount/180 days;
+        rewardsBase[_machine][_account] = earnedBase(_machine,_account);
 
-            machineRewardPerBasePointPaid[_machine][_account] = rewardPerBasePointStored;
+        machineRewardPerBasePointPaid[_machine][_account] = rewardPerBasePointStored;
 
-            // rewardsNonlinear[account] = earnedNonlinear(account);
-            // userRewardPerNonlinearPointPaid[account] = rewardPerNonliearPointStored;
-        // }
-
-         lastUpdateTime = lastTimeRewardApplicable();
+        lastUpdateTime = lastTimeRewardApplicable();
     }
 
     function rewardPerBasePoint() public view returns (uint256) {
@@ -220,13 +193,7 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
             rewardPerBasePointStored + ( (lastTimeRewardApplicable()- lastUpdateTime) *rewardRateBase * 1e18 /totalBasePoint);
     }
 
-//  function rewardPerNonlinearPoint() public view returns (uint256) {
-//         if (totalNonlinearPoint == 0 ) {
-//             return rewardPerNonliearPointStored;
-//         }
-//         return
-//             rewardPerNonliearPointStored + ( (lastTimeRewardApplicable()- lastUpdateTime) *rewardRateNonlinear * 1e18 /totalNonlinearPoint);
-//     }
+
 
     function earnedBase(string memory _machine,address _account) public view returns (uint256) {
         if(lastUpdateTime == 0){
@@ -235,11 +202,6 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return
             balanceBasePoint[_machine][_account]*(rewardPerBasePoint() - machineRewardPerBasePointPaid[_machine][_account])/1e18 + rewardsBase[_machine][_account] ;
     }
-
-    //   function earnedNonlinear(address account) public view returns (uint256) {
-    //     return
-    //         balanceNonlinearPoint[account]*(rewardPerNonlinearPoint() - userRewardPerNonlinearPointPaid[account])/1e18 +rewardsNonlinear[account];
-    // }
 
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -288,16 +250,16 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
             require(block.timestamp < periodFinish, "staking ended");
           
         }else {
-              if(totalGpuCount >= gpuCountStartRequired){
+            if(totalGpuCount >= gpuCountStartRequired){
                 startAt = block.timestamp;
                 periodFinish = startAt + REWARD_DURATION;
-              }
+            }
         }
 
 
         address stakeholder = msg.sender;
 
-         StakeInfo storage stakeInfo = machineId2StakeInfos[machineId][msg.sender];
+        StakeInfo storage stakeInfo = machineId2StakeInfos[machineId][msg.sender];
 
         require(stakeholder != address(0), "invalid stakeholder address");
         require(!stakeInfo.isStaking, "machine already staked");
@@ -307,16 +269,14 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
          //update last reward
 
-         updateReward(machineId,msg.sender);
+        updateReward(machineId,msg.sender);
      
      
         // *ln
-       ( uint _lnFactor,) = lnResult(amount > stakingThresholdAmount ? amount : stakingThresholdAmount);
+        (uint _lnFactor,) = lnResult(amount > stakingThresholdAmount ? amount : stakingThresholdAmount);
 
         totalBasePoint += calcPoint * _lnFactor;
         balanceBasePoint[machineId][msg.sender] += calcPoint * _lnFactor;
-
- 
 
         if (amount > 0) {
             stakeholder2Reserved[stakeholder][machineId] += amount;
@@ -349,10 +309,6 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         machineId2Address[machineId] = stakeholder;
 
-        // require(
-        //     reportDlcNftStaking(msgToSign, substrateSig, substratePubKey, machineId) == true, "report staking failed"
-        // );
-
         uint256 stakedMachineCount = walletAddress2StakingMachineCount[stakeholder];
         if (stakedMachineCount == 0) {
             addressInStaking[stakeholder] = true;
@@ -360,53 +316,40 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
         
         walletAddress2StakingMachineCount[stakeholder] += 1;
-        if(!isMachineInclude[machineId]){
-            machineIds.push(machineId);
-            isMachineInclude[machineId] = true;
-        }
-
-        isMachineStaked[machineId] = true;
         
+        machineIdx[machineId]= machineIds.length;
+        machineIds.push(machineId);
        
-        // stateContract.addOrUpdateStakeHolder(stakeholder, machineId, calcPoint, amount);
+   
+        isMachineStaked[machineId] = true;
 
         emit staked(stakeholder, machineId, currentTime);
     }
-
-    // function getLnResult(uint256 reserveAmount) public view returns (uint256, uint256) {
-    //     uint256 value = 0;
-    //     if (reserveAmount >= baseReserveAmount) {
-    //         value = reserveAmount - baseReserveAmount;
-    //     }
-    //     return LogarithmLibrary.lnAsFraction(value + baseReserveAmount, baseReserveAmount);
-    // }
 
     function lnResult(uint _amount) public pure returns (uint,uint){
         return LogarithmLibrary.lnAsFraction(_amount, 1e18);
 
     }
 
- 
-
-      function onERC721Received(
+    function onERC721Received(
         address operator,
         address from,
         uint256 tokenId,
         bytes memory data
-    ) public returns (bytes4) {
-        return
-            bytes4(
-                keccak256("onERC721Received(address,address,uint256,bytes)")
-            );
-    }
+        ) public returns (bytes4) {
+            return
+                bytes4(
+                    keccak256("onERC721Received(address,address,uint256,bytes)")
+                );
+        }
 
 
 
     function getRewardLocked(string memory machineId,address _account) public view returns(uint){
-            uint _reward = earnedBase(machineId,_account);
+        uint _reward = earnedBase(machineId,_account);
 
-        
-         (, uint256 lockedAmount) = _getRewardDetail(_reward);
+
+        (, uint256 lockedAmount) = _getRewardDetail(_reward);
         uint256 _amountLocked= _calculateLockedReward(machineId);
         return lockedAmount + _amountLocked;
     }
@@ -432,14 +375,15 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function getReward(string memory machineId,address _account) public view returns (uint256,uint) {
         StakeInfo memory stakeInfo = machineId2StakeInfos[machineId][_account];
-    
-       uint _reward = earnedBase(machineId,_account);
+
+        uint _reward = earnedBase(machineId,_account);
 
         
-         (uint256 canClaimAmount, ) = _getRewardDetail(_reward);
+        (uint256 canClaimAmount, ) = _getRewardDetail(_reward);
         uint256 _dailyReleaseAmount= _calculateReleaseReward(machineId);
         canClaimAmount += _dailyReleaseAmount;
         uint rewardAvailable;
+
         if (stakeInfo.reservedAmount >= stakingThresholdAmount || stakeInfo.reservedAmount + stakeInfo.rewardForStake >= stakingThresholdAmount) {
     
             rewardAvailable = canClaimAmount;
@@ -463,17 +407,17 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address stakeholder = msg.sender;
         StakeInfo storage stakeInfo = machineId2StakeInfos[machineId][msg.sender];
       
-            require(
-                (block.number - stakeInfo.lastClaimAtBlockNumber) * secondsPerBlock >= 60,
-                "last claim less than 1 day"
-            );
+        require(
+            (block.number - stakeInfo.lastClaimAtBlockNumber) * secondsPerBlock >= 60,
+            "last claim less than 1 day"
+        );
     
         stakeInfo.lastClaimAtBlockNumber = block.number;
 
         updateReward(machineId,msg.sender);
 
         
-         (uint256 canClaimAmount, uint256 lockedAmount) = _getRewardDetail(rewardsBase[machineId][msg.sender]);
+        (uint256 canClaimAmount, uint256 lockedAmount) = _getRewardDetail(rewardsBase[machineId][msg.sender]);
         uint256 _dailyReleaseAmount= _calculateReleaseRewardAndUpdate(machineId);
   
         canClaimAmount += _dailyReleaseAmount;
@@ -492,12 +436,13 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 stakeInfo.rewardForStake += canClaimAmount;
             }
         }
+         
         rewardsBase[machineId][msg.sender] = 0;
 
         
-            machineId2LockedRewardDetails[machineId][msg.sender].push(
-                LockedRewardDetail({amountReleaseDaily: lockedAmount/LOCK_PERIOD_DAY, lockStartBlock: block.number,claimedDay:0})
-            );
+        machineId2LockedRewardDetails[machineId][msg.sender].push(
+            LockedRewardDetail({amountReleaseDaily: lockedAmount/LOCK_PERIOD_DAY, lockStartBlock: block.number,claimedDay:0})
+        );
         
 
         emit claimed(stakeholder, machineId, canClaimAmount, block.number);
@@ -505,11 +450,6 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     modifier canClaim(string memory machineId) {
         require(startAt > 0,"not begin");
-        // StakeInfo storage stakeInfo = machineId2StakeInfos[machineId][msg.sender];
-        // require(stakeInfo.holder != address(0), "Invalid stakeholder address");
-        // require(stakeInfo.holder == msg.sender, "not stakeholder");
-        // require(stakeInfo.startAtBlockNumber > 0, "staking not found");
-        // require(machineId2Address[machineId] != address(0), "machine not found");
         _;
     }
 
@@ -538,7 +478,7 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
 
 
-     function _calculateReleaseRewardAndUpdate(string memory machineId)
+    function _calculateReleaseRewardAndUpdate(string memory machineId)
         internal
         returns (uint256 )
     {
@@ -556,7 +496,7 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _unlockAmount += _dayUnclaim * lockedRewardDetails[i].amountReleaseDaily;
             
  
-          machineId2LockedRewardDetails[machineId][msg.sender][i].claimedDay += _dayUnclaim;
+            machineId2LockedRewardDetails[machineId][msg.sender][i].claimedDay += _dayUnclaim;
                 
         }
         return _unlockAmount;
@@ -597,7 +537,6 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
        
         _unStakeAndClaim( machineId, stakeholder);
 
-        // stateContract.removeMachine(stakeholder, machineId);
     }
 
     function _unStakeAndClaim(
@@ -627,7 +566,6 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         totalBasePoint -= stakeInfo.calcPoint;
 
         stakeInfo.calcPoint = 0;
-        // machineId2Address[machineId] = address(0);
 
         for (uint256 i = 0; i < nftStakeIds[machineId][msg.sender].length; i++) {
            
@@ -635,30 +573,61 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
 
   
-         delete  nftStakeIds[machineId][msg.sender];
+        delete  nftStakeIds[machineId][msg.sender];
+
+        uint _machineIdx = machineIdx[machineId];
+        machineIds[_machineIdx] = machineIds[machineIds.length - 1];
+        machineIds.pop();
 
         isMachineStaked[machineId] = false;
 
+
         uint256 stakedMachineCount = walletAddress2StakingMachineCount[stakeholder];
         
-            if (stakedMachineCount == 1) {
-                 addressInStaking[stakeholder] = false;
-                addressCountInStaking -= 1;
-            }
-            walletAddress2StakingMachineCount[stakeholder] -= 1;
+        if (stakedMachineCount == 1) {
+            addressInStaking[stakeholder] = false;
+            addressCountInStaking -= 1;
+        }
+        walletAddress2StakingMachineCount[stakeholder] -= 1;
         
 
         emit unStaked(msg.sender, machineId, currentTime);
     }
 
-    function getStakeHolder(string calldata machineId) external view returns (address) {
+    function getMachineHolder(string calldata machineId) external view returns (address) {
         return machineId2Address[machineId];
     }
 
-    function isStaking(string calldata machineId,address _account) public view returns (bool) {
-       return machineId2StakeInfos[machineId][_account].isStaking;
+    function isMachineStaking(string calldata machineId,address _account) public view returns (bool) {
+        return machineId2StakeInfos[machineId][_account].isStaking;
         
     }
+
+
+
+     function isStaking(string calldata machineId) external view returns (bool){
+        return isMachineStaked[machineId];
+     }
+
+
+
+    function getTotalCalcPointAndReservedAmount() external view returns (uint256, uint256){
+        return (totalBasePoint,totalReservedAmount);
+    }
+
+    function machineLen() public view returns(uint){
+        return machineIds.length;
+    }
+
+    function getTotalGPUCountInStaking() public view returns (uint){
+        return totalGpuCount;
+    }
+
+    function getLeftGPUCountToStartReward() public view returns(uint){
+        return totalGpuCount >= gpuCountStartRequired ? 0 : gpuCountStartRequired - totalGpuCount;
+    }
+
+    
 
     function addNFTs(string calldata machineId, uint256[] calldata nftTokenIds) external {
         StakeInfo storage stakeInfo = machineId2StakeInfos[machineId][msg.sender];
@@ -685,13 +654,10 @@ contract NFTStaking is  OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function reservedNFTs(string calldata machineId,address _account) public view returns (uint256[] memory nftTokenIds) {
-        // StakeInfo memory stakeInfo = machineId2StakeInfos[machineId][_account];
-        // require(stakeInfo.holder == msg.sender, "not stakeholder");
+
         return nftStakeIds[machineId][_account];
     }
 
-
-
-
+    
 
 }
