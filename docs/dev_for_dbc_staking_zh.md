@@ -12,6 +12,17 @@ interface DbcAIStaking {
 
 ### 公共和外部函数
 
+
+#### reportStakingStatus
+
+```solidity
+function reportStakingStatus(string calldata _id, uint256 gpuNum, bool isStake) external
+```
+
+**描述：** 质押和解除质押的时候上报状态
+
+---
+
 #### freeGpuAmount
 
 ```solidity
@@ -23,7 +34,6 @@ interface DbcAIStaking {
 
 ---
 
-
 #### stakeDbc
 
 ```solidity
@@ -33,7 +43,6 @@ interface DbcAIStaking {
 **描述：** 为_id 容器或machine质押dbc,_amount为质押的dbc数量.
 
 ---
-
 
 #### amountDbcCanStake
 
