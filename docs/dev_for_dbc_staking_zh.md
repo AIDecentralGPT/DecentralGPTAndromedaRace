@@ -1,9 +1,9 @@
 ## 接口文档
 
-### `DbcAIStaking` 接口
+### `DbcStaking` 接口
 
 ```solidity
-interface DbcAIStaking {
+interface DbcStaking {
     function freeGpuAmount(string calldata _id) external view returns (uint);
 }
 ```
