@@ -93,3 +93,22 @@ function unstakeDbc(string calldata _id) external
 **描述：** 解除 `_id` 对应的容器或机器的 DBC 质押。调用此方法后，质押的 DBC 将退回到用户的账户中。
 
 ---
+
+
+#### verify
+
+```solidity
+function verify(
+        address _signer,
+        string calldata _machineId,
+        address _wallet,
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        uint deadline
+    ) external payable
+```
+
+**描述：** 验证链下签名,_signer:签名的地址,_deadline本次签名的有效截至时间戳
+
+---
