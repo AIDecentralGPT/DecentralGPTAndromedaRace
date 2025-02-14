@@ -12,7 +12,6 @@ interface DbcStaking {
 
 ### 公共和外部函数
 
-
 #### reportStakingStatus
 
 ```solidity
@@ -110,5 +109,15 @@ function verify(
 ```
 
 **描述：** 验证链下签名,_signer:签名的地址,_deadline本次签名的有效截至时间戳
+
+---
+
+#### stakeDbcForShortTerm
+
+```solidity
+function stakeDbcForShortTerm(string calldata _id) external payable
+```
+
+**描述：** 为短租质押dbc
 
 ---
