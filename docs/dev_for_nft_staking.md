@@ -13,16 +13,16 @@
 #### stake
 
 ```solidity
-  function stake(
-  
+ function stake(
+    
         string calldata machineId,
         uint256 amount,
-        uint256[] calldata nftTokenIds,
+        uint256 amountNft,
         uint256 rentId
     ) external
 ```
 
-**描述：** 质押挖矿,amount:质押gpt的数量,nftTokenIds:质押nft的id,rentId:租用id
+**描述：** 质押挖矿,amount:质押gpt的数量,amountNft:质押nft的数量,rentId:租用id
 
 ---
 
