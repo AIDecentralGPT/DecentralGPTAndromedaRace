@@ -26,6 +26,25 @@
 
 流程: rentId需要先去substrate上绑定owner地址,租用机器获得rent id
 
+    1.machineId的信息在建康检测程序要先上报
+
+---
+
+
+
+```solidity
+ function addNFTs(string calldata machineId, uint256 _amountNft) external
+```
+
+**描述：** 操作此步骤之前需要确保以下2步已经完成.
+
+ 1.先执行上面的stake操作,
+
+2.machineId已经在建康检测程序中上报
+
+说明:为已经执行stake的machineId添加nft,增加nft数量可以增加获取奖励的额度,
+
+
 ---
 
 #### getReward
