@@ -14,6 +14,8 @@
 
 "dgc": "0xb6aD0ddC796A110D469D868F6A94c80e3f53D384",
 
+"nftStakinig": 0xdC8856cFd02b0fb3821F06667EEC373a020a46AD
+
 ### 公共和外部函数
 
 #### stake
