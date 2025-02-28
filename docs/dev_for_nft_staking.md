@@ -16,6 +16,8 @@
 
 "dgc": "0xb6aD0ddC796A110D469D868F6A94c80e3f53D384",
 
+"freeMode":"0x9b35c3b9E13E058d958364eA0e7692a0d5D39Ab4"
+
 ### 公共和外部函数
 
 #### stake
