@@ -93,7 +93,6 @@ function unstakeDbc(string calldata _id) external
 
 ---
 
-
 #### verify
 
 ```solidity
